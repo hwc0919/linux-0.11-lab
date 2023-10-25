@@ -95,9 +95,9 @@ ok_load_setup:
 	xor	bh,bh
 	int	0x10
 	
-	mov	cx,#24
+	mov	cx,#27
 	mov	bx,#0x0007		! page 0, attribute 7 (normal)
-	mov	bp,#msg1
+	mov	bp,#msg2
 	mov	ax,#0x1301		! write string, move cursor
 	int	0x10
 
@@ -244,6 +244,11 @@ sectors:
 msg1:
 	.byte 13,10
 	.ascii "Loading system ..."
+	.byte 13,10,13,10
+
+msg2:
+	.byte 13,10
+	.ascii "NitroOS is booting..."
 	.byte 13,10,13,10
 
 .org 508
