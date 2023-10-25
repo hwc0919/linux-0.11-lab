@@ -90,6 +90,62 @@ print_text:
 	rep
 	movsb
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Be ready to print
+	mov ax,cs
+	mov	es,ax
+	mov ax,#INITSEG
+	mov ds,ax
+
+! Print Cursor Position
+	mov	ah,#0x03
+	xor	bh,bh
+	int	0x10
+	mov	cx,#18
+	mov	bx,#0x0007
+	mov	bp,#msg_cursor
+	mov	ax,#0x1301
+	int 0x10
+	mov	dx,[0]
+	call	print_hex
+
+! Print Memory Size
+    mov ah,#0x03
+    xor bh,bh
+    int 0x10
+    mov cx,#14
+    mov bx,#0x0007
+    mov bp,#msg_memory
+    mov ax,#0x1301
+    int 0x10
+    mov dx,[2]
+    call    print_hex
+! Add KB
+    mov ah,#0x03
+    xor bh,bh
+    int 0x10
+    mov cx,#2
+    mov bx,#0x0007
+    mov bp,#msg_kb
+    mov ax,#0x1301
+    int 0x10
+! Cyles
+    mov ah,#0x03
+    xor bh,bh
+    int 0x10
+    mov cx,#7
+    mov bx,#0x0007
+    mov bp,#msg_cyles
+    mov ax,#0x1301
+    int 0x10
+    mov dx,[0x80]	! Right ???
+    call    print_hex
+
+inf_loop:
+	jmp	inf_loop
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ! Get hd1 data
 
 	mov	ax,#0x0000
@@ -242,6 +298,51 @@ msg3:
 	.byte 13,10
 	.ascii "Now we are in SETUP"
 	.byte 13,10,13,10
+
+print_hex:
+	mov	cx,#4
+	; mov	dx,(bp)
+print_digit:
+	rol	dx,#4
+	mov	ax,#0x0e0f
+	and	al,dl
+
+	add	al,#0x30
+	cmp	al,#0x3a
+
+	jl	outp
+	add	al,#0x07
+outp:
+	int	0x10
+	loop	print_digit
+	ret
+
+print_nl:
+! CR
+    mov ax,#0x0e0d
+    int 0x10
+! LF
+    mov al,#0xa
+    int 0x10
+    ret
+
+msg_cursor:
+    .byte 13,10
+    .ascii "Cursor position:"
+msg_memory:
+    .byte 13,10
+    .ascii "Memory Size:"
+msg_cyles:
+    .byte 13,10
+    .ascii "Cyls:"
+msg_heads:
+    .byte 13,10
+    .ascii "Heads:"
+msg_sectors:
+    .byte 13,10
+    .ascii "Sectors:"
+msg_kb:
+    .ascii "KB"
 
 .text
 endtext:
