@@ -39,8 +39,28 @@ start:
 	xor	bh,bh
 	int	0x10		! save it in known place, con_init fetches
 	mov	[0],dx		! it from 0x90000.
-! Get memory size (extended mem, kB)
 
+! hwc: print text
+print_text:
+	mov     cx,#25
+	mov     bx,#0x0007              ! page 0, attribute 7 (normal)
+	mov     bp,#msg3
+	mov  	ax,cs
+	mov 	es,ax
+	mov     ax,#0x1301              ! write string, move cursor
+	int     0x10
+
+	! hwc: get cursor again
+	mov	ah,#0x03
+	xor	bh,bh
+	int	0x10
+	mov	[0],dx
+
+	!infinite loop
+	!jmp	print_text
+
+
+! Get memory size (extended mem, kB)
 	mov	ah,#0x88
 	int	0x15
 	mov	[2],ax
@@ -220,7 +240,12 @@ idt_48:
 gdt_48:
 	.word	0x800		! gdt limit=2048, 256 GDT entries
 	.word	512+gdt,0x9	! gdt base = 0X9xxxx
-	
+
+msg3:
+	.byte 13,10
+	.ascii "Now we are in SETUP"
+	.byte 13,10,13,10
+
 .text
 endtext:
 .data
