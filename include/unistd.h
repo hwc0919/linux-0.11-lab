@@ -129,6 +129,8 @@
 #define __NR_ssetmask	69
 #define __NR_setreuid	70
 #define __NR_setregid	71
+#define __NR_iam		72
+#define __NR_whoami		73
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -249,5 +251,9 @@ int dup2(int oldfd, int newfd);
 int getppid(void);
 pid_t getpgrp(void);
 pid_t setsid(void);
+
+/* hwc: lab3 syscall */
+int iam(const char * name);
+int whoami(char * buf, int len);
 
 #endif
