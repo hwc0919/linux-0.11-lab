@@ -93,10 +93,10 @@ print_text:
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Be ready to print
-	mov ax,cs
+	mov	ax,cs
 	mov	es,ax
-	mov ax,#INITSEG
-	mov ds,ax
+	mov	ax,#INITSEG
+	mov	ds,ax		! ds is used to locate memory address [0],[2],...
 
 ! Print Cursor Position
 	mov	ah,#0x03
@@ -130,6 +130,17 @@ print_text:
     mov bp,#msg_kb
     mov ax,#0x1301
     int 0x10
+! Video
+    mov ah,#0x03
+    xor bh,bh
+    int 0x10
+    mov cx,#30
+    mov bx,#0x0007
+    mov bp,#msg_video
+    mov ax,#0x1301
+    int 0x10
+    mov dx,[6]
+    call    print_hex
 ! Cyles
     mov ah,#0x03
     xor bh,bh
@@ -142,8 +153,8 @@ print_text:
     mov dx,[0x80]	! Right ???
     call    print_hex
 
-inf_loop:
-	jmp	inf_loop
+; inf_loop:
+; 	jmp	inf_loop
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ! Get hd1 data
@@ -301,7 +312,7 @@ msg3:
 
 print_hex:
 	mov	cx,#4
-	; mov	dx,(bp)
+	! mov	dx,(bp)
 print_digit:
 	rol	dx,#4
 	mov	ax,#0x0e0f
@@ -338,6 +349,9 @@ msg_cyles:
 msg_heads:
     .byte 13,10
     .ascii "Heads:"
+msg_video:
+    .byte 13,10
+    .ascii "Window width and video mode:"
 msg_sectors:
     .byte 13,10
     .ascii "Sectors:"
