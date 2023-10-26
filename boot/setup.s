@@ -153,6 +153,12 @@ print_text:
     mov dx,[0x80]	! Right ???
     call    print_hex
 
+! Adjust cursor
+	mov	ah,#0x03	! read cursor pos
+	xor	bh,bh
+	int	0x10		! save it in known place, con_init fetches
+	mov	[0],dx		! it from 0x90000.
+
 ; inf_loop:
 ; 	jmp	inf_loop
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
