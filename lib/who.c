@@ -7,39 +7,47 @@
 #define __LIBRARY__
 #include <errno.h>
 #include <unistd.h>
+#include <asm/segment.h>
 
 _syscall1(int,iam,const char *,name)
 _syscall2(int,whoami,char *,buf,int,len)
 
-char s_name[32];
+char s_name[24];
 int sys_iam(const char * name)
 {
     int i;
+    char c;
     if (!name)
     {
         return 0;
     }
-    for (i = 0; i < sizeof(name) - 1; ++i)
+    for (i = 0;;++i)
     {
-        if (name[i] == '\0')
+        if (i >= sizeof(s_name))
         {
-            return 0;
+            return -EINVAL;
         }
-        s_name[i] = name[i];
+        c = get_fs_byte(name++);
+        s_name[i] = c;
+        if (c == '\0')
+        {
+            return i;
+        }
     }
-    return 0;
+    return i;
 }
 
 int sys_whoami(char * buf, int len)
 {
     int i;
+    char c;
     for (i = 0; i < len; ++i)
     {
-        buf[i] = s_name[i];
+        put_fs_byte(s_name[i], buf + i);
         if (s_name[i] == '\0')
         {
-            return 0;
+            return i;
         }
     }
-    return 0;
+    return -1;
 }

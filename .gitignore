@@ -8,3 +8,4 @@ kernel/chr_drv/keyboard.s
 tools/build
 tools/system
 
+.vscode/
