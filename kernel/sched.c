@@ -116,7 +116,10 @@ void schedule(void)
 				}
 			if (((*p)->signal & ~(_BLOCKABLE & (*p)->blocked)) &&
 			(*p)->state==TASK_INTERRUPTIBLE)
+			{
 				(*p)->state=TASK_RUNNING;
+				LOG_PROCESS_STATUS((*p)->pid, PROCESS_STATUS_READY);
+			}
 		}
 
 /* this is the scheduler proper: */
@@ -138,12 +141,22 @@ void schedule(void)
 				(*p)->counter = ((*p)->counter >> 1) +
 						(*p)->priority;
 	}
+
+	if(current->pid != task[next]->pid) {
+		if(current->state == TASK_RUNNING)
+			LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_READY);
+		LOG_PROCESS_STATUS(task[next]->pid, PROCESS_STATUS_RUNNING);
+	}
 	switch_to(next);
 }
 
 int sys_pause(void)
 {
 	current->state = TASK_INTERRUPTIBLE;
+	if (current->pid != 0)
+	{
+		LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_BLOCK);
+	}
 	schedule();
 	return 0;
 }
@@ -159,9 +172,12 @@ void sleep_on(struct task_struct **p)
 	tmp = *p;
 	*p = current;
 	current->state = TASK_UNINTERRUPTIBLE;
+	LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_BLOCK);
 	schedule();
-	if (tmp)
+	if (tmp) {
 		tmp->state=0;
+		LOG_PROCESS_STATUS(tmp->pid, PROCESS_STATUS_READY);
+	}
 }
 
 void interruptible_sleep_on(struct task_struct **p)
@@ -175,20 +191,25 @@ void interruptible_sleep_on(struct task_struct **p)
 	tmp=*p;
 	*p=current;
 repeat:	current->state = TASK_INTERRUPTIBLE;
+	LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_BLOCK);
 	schedule();
 	if (*p && *p != current) {
 		(**p).state=0;
+		LOG_PROCESS_STATUS((*p)->pid, PROCESS_STATUS_READY);
 		goto repeat;
 	}
 	*p=NULL;
-	if (tmp)
+	if (tmp) {
+		LOG_PROCESS_STATUS(tmp->pid, PROCESS_STATUS_READY);
 		tmp->state=0;
+	}
 }
 
 void wake_up(struct task_struct **p)
 {
 	if (p && *p) {
 		(**p).state=0;
+		LOG_PROCESS_STATUS((*p)->pid, PROCESS_STATUS_READY);
 		*p=NULL;
 	}
 }

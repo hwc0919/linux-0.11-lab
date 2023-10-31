@@ -111,11 +111,15 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->tss.gs = gs & 0xffff;
 	p->tss.ldt = _LDT(nr);
 	p->tss.trace_bitmap = 0x80000000;
+
+	LOG_PROCESS_STATUS(p->pid, PROCESS_STATUS_CREATE);
+
 	if (last_task_used_math == current)
 		__asm__("clts ; fnsave %0"::"m" (p->tss.i387));
 	if (copy_mem(nr,p)) {
 		task[nr] = NULL;
 		free_page((long) p);
+		LOG_PROCESS_STATUS(p->pid, PROCESS_STATUS_EXIT);
 		return -EAGAIN;
 	}
 	for (i=0; i<NR_OPEN;i++)
@@ -130,6 +134,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	set_tss_desc(gdt+(nr<<1)+FIRST_TSS_ENTRY,&(p->tss));
 	set_ldt_desc(gdt+(nr<<1)+FIRST_LDT_ENTRY,&(p->ldt));
 	p->state = TASK_RUNNING;	/* do this last, just in case */
+	LOG_PROCESS_STATUS(p->pid, PROCESS_STATUS_READY);
 	return last_pid;
 }
 

@@ -128,6 +128,7 @@ int do_exit(long code)
 		kill_session();
 	current->state = TASK_ZOMBIE;
 	current->exit_code = code;
+	LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_EXIT);
 	tell_father(current->father);
 	schedule();
 	return (-1);	/* just to suppress warnings */

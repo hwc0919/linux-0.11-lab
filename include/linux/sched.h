@@ -253,4 +253,13 @@ unsigned long __limit; \
 __asm__("lsll %1,%0\n\tincl %0":"=r" (__limit):"r" (segment)); \
 __limit;})
 
+#define PROCESS_STATUS_CREATE  'N'
+#define PROCESS_STATUS_READY   'J'
+#define PROCESS_STATUS_RUNNING 'R'
+#define PROCESS_STATUS_BLOCK   'W'
+#define PROCESS_STATUS_EXIT    'E'
+
+#define LOG_PROCESS_STATUS(pid, status) \
+	fprintk(3, "%ld\t%c\t%ld\n", (pid), (status), jiffies);
+
 #endif
