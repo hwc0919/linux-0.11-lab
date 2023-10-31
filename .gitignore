@@ -1,5 +1,6 @@
 *.o
 *.a
+*.out
 Image
 System.map
 boot/bootsect
