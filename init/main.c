@@ -42,6 +42,7 @@ static inline _syscall0(int,sync)
 static char printbuf[1024];
 
 extern int vsprintf();
+extern void init_stdio(void);
 extern void init(void);
 extern void blk_dev_init(void);
 extern void chr_dev_init(void);
@@ -135,6 +136,7 @@ void main(void)		/* This really IS void, no error here. */
 	floppy_init();
 	sti();
 	move_to_user_mode();
+	init_stdio();
 	if (!fork()) {		/* we count on this going ok */
 		init();
 	}
@@ -165,14 +167,19 @@ static char * envp_rc[] = { "HOME=/", NULL };
 static char * argv[] = { "-/bin/sh",NULL };
 static char * envp[] = { "HOME=/usr/root", NULL };
 
-void init(void)
+void init_stdio(void)
 {
-	int pid,i;
-
 	setup((void *) &drive_info);
 	(void) open("/dev/tty0",O_RDWR,0);
 	(void) dup(0);
 	(void) dup(0);
+	(void) open("/var/process.log", O_CREAT | O_WRONLY | O_TRUNC);
+}
+
+void init(void)
+{
+	int pid,i;
+
 	printf("%d buffers = %d bytes buffer space\n\r",NR_BUFFERS,
 		NR_BUFFERS*BLOCK_SIZE);
 	printf("Free mem: %d bytes\n\r",memory_end-main_memory_start);
