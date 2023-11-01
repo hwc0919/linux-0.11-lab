@@ -260,6 +260,6 @@ __limit;})
 #define PROCESS_STATUS_EXIT    'E'
 
 #define LOG_PROCESS_STATUS(pid, status) \
-	fprintk(3, "%ld\t%c\t%ld\n", (pid), (status), jiffies);
+	fprintk(3, "%ld\t%c\t%ld - %s\n", (pid), (status), jiffies, __FUNCTION__);
 
 #endif

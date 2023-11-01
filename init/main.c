@@ -173,7 +173,7 @@ void init_stdio(void)
 	(void) open("/dev/tty0",O_RDWR,0);
 	(void) dup(0);
 	(void) dup(0);
-	(void) open("/var/process.log", O_CREAT | O_WRONLY | O_TRUNC);
+	(void) open("/var/process.log", O_CREAT | O_WRONLY | O_TRUNC, 0666);
 }
 
 void init(void)
