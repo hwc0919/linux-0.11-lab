@@ -185,6 +185,7 @@ repeat:
 		if (options & WNOHANG)
 			return 0;
 		current->state=TASK_INTERRUPTIBLE;
+		LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_BLOCK);
 		schedule();
 		if (!(current->signal &= ~(1<<(SIGCHLD-1))))
 			goto repeat;
