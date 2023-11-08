@@ -135,6 +135,10 @@ struct task_struct {
 	}, \
 }
 
+#define FIRST_TSS &(FIRST_TASK).tss
+// #define ESP0 (long)((tss_struct *)0)->esp0
+#define ESP0 4
+
 extern struct task_struct *task[NR_TASKS];
 extern struct task_struct *last_task_used_math;
 extern struct task_struct *current;
@@ -184,6 +188,10 @@ __asm__("cmpl %%ecx,current\n\t" \
 	::"m" (*&__tmp.a),"m" (*&__tmp.b), \
 	"d" (_TSS(n)),"c" ((long) task[n])); \
 }
+
+
+#define switch_to_2(p, ldt)
+
 
 #define PAGE_ALIGN(n) (((n)+0xfff)&0xfffff000)
 
