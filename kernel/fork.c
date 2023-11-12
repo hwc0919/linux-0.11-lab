@@ -92,28 +92,29 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->utime = p->stime = 0;
 	p->cutime = p->cstime = 0;
 	p->start_time = jiffies;
-	p->kernel_stack = (long *)(PAGE_SIZE + (long) p);
-	*(--p->kernel_stack) = ss & 0xffff;
-	*(--p->kernel_stack) = esp;
-	*(--p->kernel_stack) = eflags;
-	*(--p->kernel_stack) = cs & 0xffff;
-	*(--p->kernel_stack) = eip;
+	long *kernel_stack = (long *)(PAGE_SIZE + (long) p);
+	*(--kernel_stack) = ss & 0xffff;
+	*(--kernel_stack) = esp;
+	*(--kernel_stack) = eflags;
+	*(--kernel_stack) = cs & 0xffff;
+	*(--kernel_stack) = eip;
 
-	*(--p->kernel_stack) = ds & 0xffff;
-	*(--p->kernel_stack) = es & 0xffff;
-	*(--p->kernel_stack) = fs & 0xffff;
-	*(--p->kernel_stack) = gs & 0xffff;
-	*(--p->kernel_stack) = esi;
-	*(--p->kernel_stack) = edi;
-	*(--p->kernel_stack) = edx;
+	*(--kernel_stack) = ds & 0xffff;
+	*(--kernel_stack) = es & 0xffff;
+	*(--kernel_stack) = fs & 0xffff;
+	*(--kernel_stack) = gs & 0xffff;
+	*(--kernel_stack) = esi;
+	*(--kernel_stack) = edi;
+	*(--kernel_stack) = edx;
 
-	*(--p->kernel_stack) = (long)first_return_from_kernel;	// ip, for switch_to_2 ret
-	*(--p->kernel_stack) = ebp;
-	*(--p->kernel_stack) = ecx;
-	*(--p->kernel_stack) = ebx;
-	*(--p->kernel_stack) = 0;	// eax, fork() return value for child process
+	*(--kernel_stack) = (long)first_return_from_kernel;	// ip, for switch_to_2 ret
+	*(--kernel_stack) = ebp;
+	*(--kernel_stack) = ecx;
+	*(--kernel_stack) = ebx;
+	*(--kernel_stack) = 0;	// eax, fork() return value for child process
+	p->kernel_stack = kernel_stack;
 
-	p->tss.back_link = 0;
+	// p->tss.back_link = 0;
 	// p->tss.esp0 = PAGE_SIZE + (long) p;
 	// p->tss.ss0 = 0x10;
 	// p->tss.eip = eip;
@@ -132,8 +133,8 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	// p->tss.ds = ds & 0xffff;
 	// p->tss.fs = fs & 0xffff;
 	// p->tss.gs = gs & 0xffff;
-	p->tss.ldt = _LDT(nr);
-	p->tss.trace_bitmap = 0x80000000;
+	// p->tss.ldt = _LDT(nr);
+	// p->tss.trace_bitmap = 0x80000000;
 
 	LOG_PROCESS_STATUS(p->pid, PROCESS_STATUS_CREATE);
 

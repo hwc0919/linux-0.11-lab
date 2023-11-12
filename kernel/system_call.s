@@ -291,6 +291,7 @@ parallel_interrupt:
 	popl %eax
 	iret
 
+.align 2
 switch_to_2:
     pushl %ebp
     movl %esp,%ebp

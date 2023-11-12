@@ -85,7 +85,7 @@ struct task_struct {
 	long signal;
 	struct sigaction sigaction[32];
 	long blocked;	/* bitmap of masked signals */
-	long * kernel_stack;
+	long kernel_stack;
 /* various fields */
 	int exit_code;
 	unsigned long start_code,end_code,end_data,brk,start_stack;
