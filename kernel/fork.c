@@ -76,6 +76,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	struct task_struct *p;
 	int i;
 	struct file *f;
+	long *kernel_stack;
 
 	p = (struct task_struct *) get_free_page();
 	if (!p)
@@ -92,7 +93,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->utime = p->stime = 0;
 	p->cutime = p->cstime = 0;
 	p->start_time = jiffies;
-	long *kernel_stack = (long *)(PAGE_SIZE + (long) p);
+	kernel_stack = (long *)(PAGE_SIZE + (long) p);
 	*(--kernel_stack) = ss & 0xffff;
 	*(--kernel_stack) = esp;
 	*(--kernel_stack) = eflags;
