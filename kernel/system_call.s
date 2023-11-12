@@ -51,7 +51,7 @@ priority = 8
 signal	= 12
 sigaction = 16		# MUST be 16 (=len of sigaction)
 blocked = (33*16)
-kernel_stack = (33*16) + 4
+kernel_stack = (33*16+4)
 
 # offsets into tss-struct
 esp0 = 4
@@ -329,6 +329,7 @@ switch_to_2:
 # 切换cs:ip
 	ret
 
+.align 2
 first_return_from_kernel:
 	popl %edx
 	popl %edi
