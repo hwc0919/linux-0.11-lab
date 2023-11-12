@@ -85,6 +85,7 @@ struct task_struct {
 	long signal;
 	struct sigaction sigaction[32];
 	long blocked;	/* bitmap of masked signals */
+	long * kernel_stack;
 /* various fields */
 	int exit_code;
 	unsigned long start_code,end_code,end_data,brk,start_stack;
@@ -115,6 +116,7 @@ struct task_struct {
 #define INIT_TASK \
 /* state etc */	{ 0,15,15, \
 /* signals */	0,{{},},0, \
+/* kernel space */ PAGE_SIZE+(long)&init_task, \
 /* ec,brk... */	0,0,0,0,0,0, \
 /* pid etc.. */	0,-1,0,0,0, \
 /* uid etc */	0,0,0,0,0,0, \
@@ -135,9 +137,7 @@ struct task_struct {
 	}, \
 }
 
-#define FIRST_TSS &(FIRST_TASK).tss
-// #define ESP0 (long)((tss_struct *)0)->esp0
-#define ESP0 4
+extern struct tss_struct *first_tss;
 
 extern struct task_struct *task[NR_TASKS];
 extern struct task_struct *last_task_used_math;
@@ -188,10 +188,6 @@ __asm__("cmpl %%ecx,current\n\t" \
 	::"m" (*&__tmp.a),"m" (*&__tmp.b), \
 	"d" (_TSS(n)),"c" ((long) task[n])); \
 }
-
-
-#define switch_to_2(p, ldt)
-
 
 #define PAGE_ALIGN(n) (((n)+0xfff)&0xfffff000)
 

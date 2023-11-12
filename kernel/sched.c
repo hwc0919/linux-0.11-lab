@@ -56,6 +56,7 @@ union task_union {
 };
 
 static union task_union init_task = {INIT_TASK,};
+struct tss_struct *first_tss = &(init_task.task.tss);
 
 long volatile jiffies=0;
 long startup_time=0;
@@ -90,6 +91,8 @@ void math_state_restore()
 		current->used_math=1;
 	}
 }
+
+extern int switch_to_2(struct task_struct * pnext, unsigned long ldt);
 
 /*
  *  'schedule()' is the scheduler function. This is GOOD CODE! There

@@ -51,6 +51,10 @@ priority = 8
 signal	= 12
 sigaction = 16		# MUST be 16 (=len of sigaction)
 blocked = (33*16)
+kernel_stack = (33*16) + 4
+
+# offsets into tss-struct
+esp0 = 4
 
 # offsets within sigaction
 sa_handler = 0
@@ -69,6 +73,7 @@ nr_system_calls = 74
 .globl system_call,sys_fork,timer_interrupt,sys_execve
 .globl hd_interrupt,floppy_interrupt,parallel_interrupt
 .globl device_not_available, coprocessor_error
+.globl switch_to_2,first_return_from_kernel
 
 .align 2
 bad_sys_call:
@@ -286,29 +291,32 @@ parallel_interrupt:
 	popl %eax
 	iret
 
-switch_to:
+switch_to_2:
     pushl %ebp
     movl %esp,%ebp
     pushl %ecx
     pushl %ebx
     pushl %eax
-    movl 8(%ebp),%ebx
+    movl 8(%ebp),%ebx	# first parameters
     cmpl %ebx,current
     je 1f
-; 切换PCB
+# 切换PCB
     movl %ebx,%eax
-	xchgl %eax,current
-; TSS中的内核栈指针的重写
-	movl FIRST_TSS,%ecx
-	addl $4096,%ebx
-	movl %ebx,ESP0(%ecx)
-; 切换内核栈
-    ! ...
-; 切换LDT
-    ! ...
+	xchgl %eax,current		# current = pnext, eax = old_current
+# TSS中的内核栈指针的重写
+	movl first_tss,%ecx		# Only one tss is needed
+	addl $4096,%ebx			# kernel space esp0
+	movl %ebx,esp0(%ecx)	# first_tss->esp0 = pnext->esp0
+# 切换内核栈
+    movl %esp,kernel_stack(%eax) # save old kernel stack
+	movl 8(%ebp),%ebx			 # we have changed ebx, load pnext again
+	mov kernel_stack(%ebx),%esp	 # switch to new kernel stack
+# 切换LDT
+	movl 12(%ebp),%ecx	# load _LDT(next)
+	lldt %cx
     movl $0x17,%ecx
-    mov %cx,%fs
-; 和后面的 clts 配合来处理协处理器，由于和主题关系不大，此处不做论述
+    mov %cx,%fs		# reset fs, let machine fetch new ldt
+# 和后面的 clts 配合来处理协处理器，由于和主题关系不大，此处不做论述
     cmpl %eax,last_task_used_math
     jne 1f
     clts
@@ -317,4 +325,15 @@ switch_to:
     popl %ebx
     popl %ecx
     popl %ebp
-ret
+# 切换cs:ip
+	ret
+
+first_return_from_kernel:
+	popl %edx
+	popl %edi
+	popl %esi
+	pop %gs
+	pop %fs
+	pop %es
+	pop %ds
+	iret
