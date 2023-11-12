@@ -311,7 +311,7 @@ switch_to_2:
 # 切换内核栈
     movl %esp,kernel_stack(%eax) # save old kernel stack
 	movl 8(%ebp),%ebx			 # we have changed ebx, load pnext again
-	mov kernel_stack(%ebx),%esp	 # switch to new kernel stack
+	movl kernel_stack(%ebx),%esp	 # switch to new kernel stack
 # 切换LDT
 	movl 12(%ebp),%ecx	# load _LDT(next)
 	lldt %cx
