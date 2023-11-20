@@ -56,6 +56,7 @@ union task_union {
 };
 
 static union task_union init_task = {INIT_TASK,};
+struct tss_struct *first_tss = &(init_task.task.tss);
 
 long volatile jiffies=0;
 long startup_time=0;
@@ -91,6 +92,8 @@ void math_state_restore()
 	}
 }
 
+extern int switch_to_2(struct task_struct * pnext, unsigned long ldt);
+
 /*
  *  'schedule()' is the scheduler function. This is GOOD CODE! There
  * probably won't be any reason to change this, as it should work well
@@ -105,6 +108,7 @@ void schedule(void)
 {
 	int i,next,c;
 	struct task_struct ** p;
+	struct task_struct *pnext = &(init_task.task);
 
 /* check alarm, wake up any interruptible tasks that have got a signal */
 
@@ -133,7 +137,7 @@ void schedule(void)
 			if (!*--p)
 				continue;
 			if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
-				c = (*p)->counter, next = i;
+				c = (*p)->counter, next = i, pnext = *p;
 		}
 		if (c) break;
 		for(p = &LAST_TASK ; p > &FIRST_TASK ; --p)
@@ -147,7 +151,8 @@ void schedule(void)
 			LOG_PROCESS_STATUS(current->pid, PROCESS_STATUS_READY);
 		LOG_PROCESS_STATUS(task[next]->pid, PROCESS_STATUS_RUNNING);
 	}
-	switch_to(next);
+	// switch_to(next);
+	switch_to_2(pnext, _LDT(next));
 }
 
 int sys_pause(void)

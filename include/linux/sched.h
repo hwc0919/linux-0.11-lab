@@ -85,6 +85,7 @@ struct task_struct {
 	long signal;
 	struct sigaction sigaction[32];
 	long blocked;	/* bitmap of masked signals */
+	long kernel_stack;
 /* various fields */
 	int exit_code;
 	unsigned long start_code,end_code,end_data,brk,start_stack;
@@ -115,6 +116,7 @@ struct task_struct {
 #define INIT_TASK \
 /* state etc */	{ 0,15,15, \
 /* signals */	0,{{},},0, \
+/* kernel space */ PAGE_SIZE+(long)&init_task, \
 /* ec,brk... */	0,0,0,0,0,0, \
 /* pid etc.. */	0,-1,0,0,0, \
 /* uid etc */	0,0,0,0,0,0, \

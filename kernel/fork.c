@@ -61,6 +61,8 @@ int copy_mem(int nr,struct task_struct * p)
 	return 0;
 }
 
+extern void first_return_from_kernel(void);
+
 /*
  *  Ok, this is the main fork-routine. It copies the system process
  * information (task[nr]) and sets up the necessary registers. It
@@ -74,6 +76,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	struct task_struct *p;
 	int i;
 	struct file *f;
+	long *kernel_stack;
 
 	p = (struct task_struct *) get_free_page();
 	if (!p)
@@ -90,27 +93,49 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->utime = p->stime = 0;
 	p->cutime = p->cstime = 0;
 	p->start_time = jiffies;
-	p->tss.back_link = 0;
-	p->tss.esp0 = PAGE_SIZE + (long) p;
-	p->tss.ss0 = 0x10;
-	p->tss.eip = eip;
-	p->tss.eflags = eflags;
-	p->tss.eax = 0;
-	p->tss.ecx = ecx;
-	p->tss.edx = edx;
-	p->tss.ebx = ebx;
-	p->tss.esp = esp;
-	p->tss.ebp = ebp;
-	p->tss.esi = esi;
-	p->tss.edi = edi;
-	p->tss.es = es & 0xffff;
-	p->tss.cs = cs & 0xffff;
-	p->tss.ss = ss & 0xffff;
-	p->tss.ds = ds & 0xffff;
-	p->tss.fs = fs & 0xffff;
-	p->tss.gs = gs & 0xffff;
-	p->tss.ldt = _LDT(nr);
-	p->tss.trace_bitmap = 0x80000000;
+	kernel_stack = (long *)(PAGE_SIZE + (long) p);
+	*(--kernel_stack) = ss & 0xffff;
+	*(--kernel_stack) = esp;
+	*(--kernel_stack) = eflags;
+	*(--kernel_stack) = cs & 0xffff;
+	*(--kernel_stack) = eip;
+
+	*(--kernel_stack) = ds & 0xffff;
+	*(--kernel_stack) = es & 0xffff;
+	*(--kernel_stack) = fs & 0xffff;
+	*(--kernel_stack) = gs & 0xffff;
+	*(--kernel_stack) = esi;
+	*(--kernel_stack) = edi;
+	*(--kernel_stack) = edx;
+
+	*(--kernel_stack) = (long)first_return_from_kernel;	// ip, for switch_to_2 ret
+	*(--kernel_stack) = ebp;
+	*(--kernel_stack) = ecx;
+	*(--kernel_stack) = ebx;
+	*(--kernel_stack) = 0;	// eax, fork() return value for child process
+	p->kernel_stack = kernel_stack;
+
+	// p->tss.back_link = 0;
+	// p->tss.esp0 = PAGE_SIZE + (long) p;
+	// p->tss.ss0 = 0x10;
+	// p->tss.eip = eip;
+	// p->tss.eflags = eflags;
+	// p->tss.eax = 0;
+	// p->tss.ecx = ecx;
+	// p->tss.edx = edx;
+	// p->tss.ebx = ebx;
+	// p->tss.esp = esp;
+	// p->tss.ebp = ebp;
+	// p->tss.esi = esi;
+	// p->tss.edi = edi;
+	// p->tss.es = es & 0xffff;
+	// p->tss.cs = cs & 0xffff;
+	// p->tss.ss = ss & 0xffff;
+	// p->tss.ds = ds & 0xffff;
+	// p->tss.fs = fs & 0xffff;
+	// p->tss.gs = gs & 0xffff;
+	// p->tss.ldt = _LDT(nr);
+	// p->tss.trace_bitmap = 0x80000000;
 
 	LOG_PROCESS_STATUS(p->pid, PROCESS_STATUS_CREATE);
 
