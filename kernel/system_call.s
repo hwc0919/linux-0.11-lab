@@ -62,9 +62,11 @@ sa_mask = 4
 sa_flags = 8
 sa_restorer = 12
 
-# hwc: lab3 syscall
 # nr_system_calls = 72
-nr_system_calls = 74
+# hwc: lab3 syscall
+# nr_system_calls = 74
+# hwc: lab6 sem
+nr_system_calls = 78
 
 /*
  * Ok, I get parallel printer interrupts while using the floppy for some

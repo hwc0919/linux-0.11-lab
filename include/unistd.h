@@ -131,6 +131,10 @@
 #define __NR_setregid	71
 #define __NR_iam		72
 #define __NR_whoami		73
+#define __NR_sem_open	74
+#define __NR_sem_wait	75
+#define __NR_sem_post	76
+#define __NR_sem_unlink	77
 
 #define _syscall0(type,name) \
 type name(void) \
@@ -255,5 +259,11 @@ pid_t setsid(void);
 /* hwc: lab3 syscall */
 int iam(const char * name);
 int whoami(char * buf, int len);
+
+/* hwc: lab6 sem */
+int sys_sem_open(const char * name, unsigned int value);
+int sys_sem_wait(int sem);
+int sys_sem_post(int sem);
+int sys_sem_unlink(int sem);
 
 #endif
