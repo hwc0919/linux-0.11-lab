@@ -75,6 +75,12 @@ extern int sys_setregid();
 extern int sys_iam(const char * name);
 extern int sys_whoami(char * buf, int len);
 
+/* hwc: lab6 sem */
+int sys_sem_open(const char * name, unsigned int value);
+int sys_sem_wait(int sem);
+int sys_sem_post(int sem);
+int sys_sem_unlink(int sem);
+
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
 sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, sys_time, sys_mknod, sys_chmod,
@@ -89,4 +95,7 @@ sys_uname, sys_umask, sys_chroot, sys_ustat, sys_dup2, sys_getppid,
 sys_getpgrp, sys_setsid, sys_sigaction, sys_sgetmask, sys_ssetmask,
 sys_setreuid,sys_setregid,
 /* hwc: lab3 syscall */
-sys_iam, sys_whoami };
+sys_iam, sys_whoami,
+/* hwc: lab6 sem */
+sys_sem_open, sys_sem_wait, sys_sem_post, sys_sem_unlink
+};
