@@ -10,15 +10,21 @@
 #include <errno.h>
 #include <linux/sched.h>
 #include <linux/sem.h>
-#include <string.h>
+// #include <string.h> // DO NOT INCLUDE THIS, will introduce bug
 #include <unistd.h>
 
-_syscall2(int, sem_open, const char *, name, unsigned int, value);
-_syscall1(int, sem_wait, int, sem);
-_syscall1(int, sem_post, int, sem);
-_syscall1(int, sem_unlink, int, sem);
-
+typedef struct semaphore
+{
+    char * name[SEM_NAME_LEN];
+    int value;
+    struct task_struct * queue;
+} sem_t;
 sem_t semtable[SEM_TABLE_LEN];
+
+_syscall2(int, sem_open, const char *, name, unsigned int, value)
+_syscall1(int, sem_wait, int, sem)
+_syscall1(int, sem_post, int, sem)
+_syscall1(int, sem_unlink, int, sem)
 
 int sys_sem_open(const char * name, unsigned int value)
 {
@@ -35,7 +41,7 @@ int sys_sem_open(const char * name, unsigned int value)
         ++name_size;
         if (name_size >= SEM_NAME_LEN)
         {
-            return NULL;
+            return -1;
         }
     }
     kern_name[name_size] = '\0';
@@ -55,7 +61,7 @@ int sys_sem_open(const char * name, unsigned int value)
 
     if (first_empty < 0)
     {
-        return NULL;
+        return -1;
     }
     sem = &semtable[first_empty];
     for (i = 0; i <= name_size; ++i) // also copy last '\0'
